@@ -1,1 +1,1 @@
-export * from './models/quickbooks-config.model';
+export * from './models/ebay-config.model';

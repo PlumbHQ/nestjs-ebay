@@ -1,120 +1,46 @@
 import { Injectable } from '@nestjs/common';
-import { NestJsQuickBooksAuthService } from '../auth/services/auth.service';
-import { firstValueFrom, from, Observable, of } from 'rxjs';
+import { NestJsEbayAuthService } from '../auth/services/auth.service';
+import { firstValueFrom, Observable, of } from 'rxjs';
 import { catchError, map, mergeMap } from 'rxjs/operators';
-import { WhereOptions } from './models';
 import { HttpService } from '@nestjs/axios';
-import * as querystring from 'querystring';
-import { NestJsQuickBooksConfigService } from '../config/services/quickbooks-config.service';
-import {
-  QueryUtils,
-  IQuickBooksErrorResponse,
-  NestJsQuickBooksHttpError,
-} from '../../utils';
-import { Request } from 'express';
+import { NestJsEbayHttpError } from '../../utils';
+import { NestJsEbayModesEnum } from '../config';
 
 @Injectable()
-export abstract class NestJsQuickBooksBaseService<
-  Response,
-  Query,
-  QueryResponse,
-> {
+export abstract class NestJsEbayBaseService {
   public resource: string;
 
-  private readonly sandboxUrl = 'https://sandbox-quickbooks.api.intuit.com';
-  private readonly liveUrl = 'https://quickbooks.api.intuit.com';
+  private readonly sandboxUrl = 'https://api.sandbox.ebay.com';
+  private readonly liveUrl = 'https://api.ebay.com';
 
   constructor(
-    private readonly authService: NestJsQuickBooksAuthService,
-    private readonly configService: NestJsQuickBooksConfigService,
+    private readonly authService: NestJsEbayAuthService,
     private readonly http: HttpService,
   ) {}
 
-  protected getRealm(): Observable<string> {
-    return from(
-      this.configService.global.store
-        .getToken()
-        .then((token) => token?.realmId),
-    );
-  }
-
   protected get apiUrl(): string {
-    return this.authService.mode === 'production'
+    return this.authService.mode === 'PRODUCTION'
       ? this.liveUrl
       : this.sandboxUrl;
   }
 
-  public query(condition: WhereOptions<Query>): Promise<QueryResponse> {
+  /**
+   * HTTP GET
+   * @param {string} path
+   * @param queryParams
+   * @param headers
+   * @returns
+   */
+  protected get<R = Response>(path: string, subdomain = 'api'): Promise<R> {
     return firstValueFrom(
       this.getHttpHeaders()
         .pipe(
           mergeMap((authHeaders) =>
-            this.queryUrl(condition).pipe(
-              mergeMap((url) =>
-                this.http.get<QueryResponse>(url, {
-                  headers: {
-                    ...authHeaders,
-                  },
-                }),
-              ),
-            ),
-          ),
-        )
-        .pipe(
-          map((x) => x.data),
-          catchError(this.handleHttpError),
-        ),
-    );
-  }
-
-  protected get<R = Response>(
-    path?: string,
-    queryParams?: Record<string, any>,
-    headers?: Record<string, any>,
-  ): Promise<R> {
-    return firstValueFrom(
-      this.getHttpHeaders()
-        .pipe(
-          mergeMap((authHeaders) =>
-            this.url(path, queryParams).pipe(
-              mergeMap((url) =>
-                this.http.get<R>(url, {
-                  headers: {
-                    ...authHeaders,
-                    ...headers,
-                  },
-                }),
-              ),
-            ),
-          ),
-        )
-        .pipe(
-          map((x) => x.data),
-          catchError(this.handleHttpError),
-        ),
-    );
-  }
-
-  protected post<R = Response>(
-    body: any,
-    path?: string,
-    queryParams?: Record<string, any>,
-    headers?: Record<string, any>,
-  ): Promise<R> {
-    return firstValueFrom(
-      this.getHttpHeaders()
-        .pipe(
-          mergeMap((authHeaders) =>
-            this.url(path, queryParams).pipe(
-              mergeMap((url) =>
-                this.http.post<R>(url, body, {
-                  headers: {
-                    ...authHeaders,
-                    ...headers,
-                  },
-                }),
-              ),
-            ),
+            this.http.get<R>(this.url(path, subdomain), {
+              headers: {
+                ...authHeaders,
+              },
+            }),
           ),
         )
         .pipe(
@@ -130,76 +56,61 @@ export abstract class NestJsQuickBooksBaseService<
    * @returns
    */
   handleHttpError(error: any): Observable<any> {
+    console.log('handleHttpError');
+
     if (error.response) {
-      const err = new NestJsQuickBooksHttpError(
+      const err = new NestJsEbayHttpError(
         error.response.data,
         error.response.status,
       );
 
-      console.log('QB ERROR: ' + err.message);
+      console.error('handleHttpError.response');
+      console.error('EBAY ERROR: ' + err.message);
       console.log(JSON.stringify(err, null, 2));
+
       throw err;
     } else if (error.request) {
       // The request was made but no response was received
       // `error.request` is an instance of XMLHttpRequest in the browser and an instance of
       // http.ClientRequest in node.js
-      console.log('handleHttpError.request');
-      console.log(JSON.stringify(error.request, null, 2));
-    } else if (typeof error) {
+      console.error('handleHttpError.request');
+      console.log(JSON.stringify(error, null, 2));
     } else {
       // Something happened in setting up the request that triggered an Error
-      console.log('handleHttpError.other');
-      console.log(JSON.stringify(error.response.errors, null, 2));
+      console.error('handleHttpError.other');
+      console.log(JSON.stringify(error, null, 2));
+
+      throw error;
     }
 
     return of(error);
   }
 
-  protected queryUrl(condition: WhereOptions<any>): Observable<string> {
-    return this.getRealm().pipe(
-      map(
-        (realm) =>
-          `${
-            this.apiUrl
-          }/v3/company/${realm}/query?minorversion=62&${QueryUtils.generateQuery(
-            this.resource,
-            condition,
-          )}`,
-      ),
-    );
+  /**
+   * Return the URL string
+   * @param {string} path
+   * @returns {string}
+   */
+  protected url(path: string, subdomain = 'api'): string {
+    let url = `https://${subdomain}.`;
+
+    if (this.authService.mode === NestJsEbayModesEnum.Sandbox) {
+      url += 'sandbox.';
+    }
+
+    url += `ebay.com/${path}`;
+
+    return url;
   }
 
-  protected url(
-    path: string,
-    queryParams: Record<string, any> = {},
-  ): Observable<string> {
-    queryParams['minorversion'] = 62;
-
-    const query = queryParams
-      ? `?${querystring.stringify(
-          queryParams as querystring.ParsedUrlQueryInput,
-        )}`
-      : '';
-
-    return this.getRealm().pipe(
-      map((realm) => {
-        let url: string;
-
-        if (!path) {
-          url = `${this.apiUrl}/v3/company/${realm}/${this.resource}${query}`;
-        } else {
-          url = `${this.apiUrl}/v3/company/${realm}/${this.resource}/${path}${query}`;
-        }
-
-        return url;
-      }),
-    );
-  }
-
+  /**
+   * Construct the HTTP Headers for the request
+   * @returns {Observable<any>}
+   */
   private getHttpHeaders(): Observable<any> {
     return this.authService.getToken().pipe(
-      map((token) => ({
-        Authorization: `Bearer ${token}`,
+      map((accessToken) => ({
+        Authorization: `Bearer ${accessToken}`,
         Accept: 'application/json',
       })),
     );

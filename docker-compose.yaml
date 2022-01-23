@@ -12,4 +12,4 @@ services:
     networks:
       - backend
     ports:
-      - 6379:6379
+      - 6400:6379

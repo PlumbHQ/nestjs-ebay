@@ -1,14 +1,16 @@
-import { NestJsQuickBooksAuthService } from '../services/auth.service';
+import { NestJsEbayAuthService } from '../services/auth.service';
 import { Request, Response } from 'express';
+import { Controller } from '@nestjs/common';
 
-export class QuickBooksAuthController {
-  constructor(private readonly authService: NestJsQuickBooksAuthService) {}
+@Controller()
+export class EbayAuthController {
+  constructor(private readonly authService: NestJsEbayAuthService) {}
 
   public authorize(res: Response): void {
     res.redirect(this.authService.getAuthorizeUri());
   }
 
-  public async authorizeCode(req: Request): Promise<void> {
-    return this.authService.authorizeCode(req.url);
+  public async authorizeCode(req: Request): Promise<string> {
+    return this.authService.authorizeCode(req.query.code as string);
   }
 }

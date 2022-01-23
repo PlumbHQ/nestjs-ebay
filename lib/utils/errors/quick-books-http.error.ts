@@ -1,19 +1,19 @@
-import { NestJsQuickBooksError } from './quick-books.error';
+import { NestJsEbayError } from './quick-books.error';
 
-export interface IQuickBooksError {
+export interface IEbayError {
   Message: string;
   Detail: string;
   code: string;
   element: string;
 }
 
-export interface IQuickBooksErrorResponse {
-  errors: IQuickBooksError[];
+export interface IEbayErrorResponse {
+  errors: IEbayError[];
   time: string;
   status: number;
 }
 
-export interface IQuickBooksHttpError {
+export interface IEbayHttpError {
   Fault: {
     Error: {
       Message: string;
@@ -26,19 +26,19 @@ export interface IQuickBooksHttpError {
   time: string;
 }
 
-export interface INestJSQuickBooksHttpError {
+export interface INestJSEbayHttpError {
   message: string;
   detail: string;
   code: string;
 }
 
-export class NestJsQuickBooksHttpError extends NestJsQuickBooksError {
+export class NestJsEbayHttpError extends NestJsEbayError {
   public time: string;
   public type: string;
   public status: number;
-  public errors: INestJSQuickBooksHttpError[];
+  public errors: INestJSEbayHttpError[];
 
-  constructor(errorData: IQuickBooksHttpError, status: number) {
+  constructor(errorData: IEbayHttpError, status: number) {
     super();
 
     this.message = errorData.Fault.type;
@@ -47,7 +47,7 @@ export class NestJsQuickBooksHttpError extends NestJsQuickBooksError {
     this.time = errorData.time;
 
     this.errors = errorData.Fault.Error.map(
-      (Error): INestJSQuickBooksHttpError => ({
+      (Error): INestJSEbayHttpError => ({
         message: Error.Message,
         detail: Error.Detail,
         code: Error.code,

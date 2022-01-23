@@ -1,16 +1,16 @@
-import { NestJsQuickBooksStore } from './store.service';
+import { NestJsEbayStore } from './store.service';
 import { Injectable } from '@nestjs/common';
-import { TokensModel } from '../auth/models/tokens.model';
+import { EbayTokensModel } from '../auth/models/tokens.model';
 
 @Injectable()
-export class LocalStore extends NestJsQuickBooksStore {
-  token: TokensModel;
+export class LocalStore extends NestJsEbayStore {
+  token: EbayTokensModel;
 
-  public async getToken(): Promise<TokensModel> {
+  public async getToken(): Promise<EbayTokensModel> {
     return this.token;
   }
 
-  public async setToken(token: TokensModel): Promise<void> {
+  public async setToken(token: EbayTokensModel): Promise<void> {
     this.token = token;
   }
 

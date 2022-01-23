@@ -1,5 +1,5 @@
-import { NestJsQuickBooksError } from './quick-books.error';
+import { NestJsEbayError } from './quick-books.error';
 
-export class NestJsQuickBooksAuthorisationError extends NestJsQuickBooksError {
-  message = 'QuickBooks Not Authorised';
+export class NestJsEbayAuthorisationError extends NestJsEbayError {
+  message = 'Ebay Not Authorised';
 }

@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { TokensModel } from '../auth/models/tokens.model';
+import { EbayTokensModel } from '../auth/models/tokens.model';
 
 @Injectable()
-export abstract class NestJsQuickBooksStore {
-  public abstract setToken(token: TokensModel): Promise<void>;
-  public abstract getToken(): Promise<TokensModel>;
+export abstract class NestJsEbayStore {
+  public abstract setToken(token: EbayTokensModel): Promise<void>;
+  public abstract getToken(): Promise<EbayTokensModel>;
   public abstract unsetToken(): Promise<void>;
 }

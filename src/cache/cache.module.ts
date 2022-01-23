@@ -1,16 +1,16 @@
 import { Module, CacheModule as NestCacheModule } from '@nestjs/common';
 import * as redisStore from 'cache-manager-redis-store';
-import { QbStoreService } from './qb-store/qb-store.service';
+import { EbayStoreService } from './ebay-store/ebay-store.service';
 
 @Module({
   imports: [
     NestCacheModule.register({
       store: redisStore,
       host: 'localhost',
-      port: '6379',
+      port: '6400',
     }),
   ],
-  providers: [QbStoreService],
-  exports: [QbStoreService, NestCacheModule],
+  providers: [EbayStoreService],
+  exports: [EbayStoreService, NestCacheModule],
 })
 export class CacheModule {}

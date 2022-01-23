@@ -1,48 +1,45 @@
 import { Injectable } from '@nestjs/common';
 import { from, Observable, of } from 'rxjs';
 import { map, mergeMap } from 'rxjs/operators';
-import { TokensModel } from '..';
-import { NestJsQuickBooksConfigService } from '../../config/services/quickbooks-config.service';
-import { NestJsQuickbooksModes } from '../../config';
-import { NestJsQuickBooksAuthorisationError } from 'lib/utils/errors/quick-books-authorisation.error';
-import * as OAuthClient from 'intuit-oauth';
+import { EbayTokensModel } from '..';
+import { NestJsEbayConfigService } from '../../config/services/ebay-config.service';
+import { NestJsEbayModes } from '../../config';
+import { NestJsEbayAuthorisationError } from 'lib/utils/errors/quick-books-authorisation.error';
+import * as EbayAuthToken from 'ebay-oauth-nodejs-client';
 
 @Injectable()
-export class NestJsQuickBooksAuthService {
-  private readonly client: OAuthClient;
+export class NestJsEbayAuthService {
+  private readonly client: EbayAuthToken;
 
-  constructor(private readonly configService: NestJsQuickBooksConfigService) {
-    this.client = new OAuthClient({
+  constructor(private readonly configService: NestJsEbayConfigService) {
+    this.client = new EbayAuthToken({
       clientId: this.configService.global.clientId,
       clientSecret: this.configService.global.clientSecret,
-      environment: this.configService.global.mode,
       redirectUri: this.configService.global.authRedirectUrl,
     });
   }
 
-  public get mode(): NestJsQuickbooksModes {
+  public get mode(): NestJsEbayModes {
     return this.configService.global.mode;
   }
 
   public async disconnect(): Promise<void> {
-    return this.client.revoke().then(async (authResponse) => {
-      await this.configService.global.store.unsetToken();
-      // await this.tokenStore.unsetToken();
-    });
+    return this.configService.global.store.unsetToken();
   }
 
   public getAuthorizeUri(): string {
-    return this.client.authorizeUri({
-      scope: this.configService.global.scopes,
-      state: 'nestjs-client-state',
-    });
+    return this.client.generateUserAuthorizationUrl(
+      this.mode,
+      this.configService.global.scopes,
+    );
   }
 
-  public async authorizeCode(url: string): Promise<void> {
-    await this.client.createToken(url);
-    const token = this.client.getToken().getToken();
+  public async authorizeCode(code: string): Promise<string> {
+    let token = await this.client.exchangeCodeForAccessToken(this.mode, code);
+    token = JSON.parse(token) as EbayTokensModel;
+
     await this.configService.global.store.setToken(token);
-    // await this.tokenStore.setToken(token);
+    return token.access_token;
   }
 
   public getToken(): Observable<string> {
@@ -53,7 +50,7 @@ export class NestJsQuickBooksAuthService {
             return of(null);
           }
 
-          if (this.validateToken(token)) {
+          if (token) {
             return of(token.access_token);
           }
 
@@ -63,7 +60,7 @@ export class NestJsQuickBooksAuthService {
       .pipe(
         map((value) => {
           if (!value) {
-            throw new NestJsQuickBooksAuthorisationError();
+            throw new NestJsEbayAuthorisationError();
           }
 
           return value;
@@ -71,22 +68,18 @@ export class NestJsQuickBooksAuthService {
       );
   }
 
-  private validateToken(token: TokensModel): boolean {
-    if (!token) {
-      return false;
-    }
-
-    this.client.setToken(token);
-    return this.client.isAccessTokenValid();
-  }
-
-  private refreshAccessToken(token: TokensModel): Observable<string> {
-    return from(this.client.refreshUsingToken(token.refresh_token)).pipe(
-      map(() => {
-        const newToken = this.client.getToken().getToken();
-        from(this.configService.global.store.setToken(newToken));
-        // this.tokenStore.setToken(newToken);
-        return newToken.access_token;
+  private refreshAccessToken(token: EbayTokensModel): Observable<string> {
+    return from(
+      this.client.getAccessToken(
+        this.mode,
+        token.refresh_token,
+        this.configService.global.scopes,
+      ),
+    ).pipe(
+      map((access_token: string) => {
+        token.access_token = access_token;
+        from(this.configService.global.store.setToken(token));
+        return access_token;
       }),
     );
   }

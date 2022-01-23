@@ -1,11 +1,11 @@
 {
-  "name": "@plumbhq/nestjs-quickbooks",
+  "name": "@plumbhq/nestjs-ebay",
   "private": false,
   "version": "1.0.60",
-  "description": "NestJS Quickbooks Integration",
+  "description": "git",
   "keywords": [
     "nestjs",
-    "quickbooks"
+    "ebay"
   ],
   "files": [
     "dist",
@@ -40,7 +40,9 @@
     "@nestjs/common": "^8.0.0",
     "@nestjs/core": "^8.0.0",
     "@nestjs/platform-express": "^8.0.0",
-    "intuit-oauth": "^4.0.0",
+    "ebay-oauth-nodejs-client": "^1.2.1",
+    "passport": "^0.5.2",
+    "passport-oauth2": "^1.6.1",
     "reflect-metadata": "^0.1.13",
     "rimraf": "^3.0.2",
     "rxjs": "^7.3.0"

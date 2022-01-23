@@ -1,3 +1,3 @@
-export class NestJsQuickBooksError extends Error {
-  message = 'QuickBooks Not Authorised';
+export class NestJsEbayError extends Error {
+  message = 'Ebay Not Authorised';
 }

@@ -1,30 +1,21 @@
 import { Controller, Get, Res } from '@nestjs/common';
 import { Response } from 'express';
-import {
-  NestJsQuickBooksCompanyInfoService,
-  NestJsQuickBooksAuthorisationError,
-} from 'lib';
+import { NestJsEbayIdentityService, NestJsEbayAuthorisationError } from 'lib';
 
 @Controller()
 export class AppController {
-  constructor(
-    private readonly qbCompanyService: NestJsQuickBooksCompanyInfoService,
-  ) {}
+  constructor(private readonly identity: NestJsEbayIdentityService) {}
 
   @Get()
   async getHello(@Res() res: Response): Promise<any> {
-    const result = await this.qbCompanyService
-      .read()
-      .then((x) => {
-        return x.CompanyInfo;
-      })
-      .catch((err) => {
-        if (err instanceof NestJsQuickBooksAuthorisationError) {
-          return res.redirect('/auth');
-        }
+    const result = await this.identity.read().catch((err) => {
+      if (err instanceof NestJsEbayAuthorisationError) {
+        return res.redirect('/auth');
+      }
 
-        throw err;
-      });
+      console.error('getHello');
+      console.error(err);
+    });
 
     return res.send(result);
   }

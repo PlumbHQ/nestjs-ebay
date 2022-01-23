@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
-import { NestJsQuickBooksConfigService } from './services/quickbooks-config.service';
+import { NestJsEbayConfigService } from './services/ebay-config.service';
 
 @Module({
-  providers: [NestJsQuickBooksConfigService],
-  exports: [NestJsQuickBooksConfigService],
+  providers: [NestJsEbayConfigService],
+  exports: [NestJsEbayConfigService],
 })
 export class ConfigModule {}

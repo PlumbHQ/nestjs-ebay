@@ -1,61 +1,43 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import {
-  NestJsQuickbooksModesEnum,
-  NestJsQuickBooksModule,
-  NestJsQuickBooksOptions,
-  NestJsQuickBooksScopes,
-  TokensModel,
+  NestJsEbayModule,
+  NestJsEbayModesEnum,
+  NestJsEbayScopes,
+  EbayTokensModel,
+  NestJsEbayOptions,
 } from 'lib';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { CustomersController } from './customers/customers.controller';
 import { AuthController } from './auth/auth.controller';
-import { ItemsController } from './items/items.controller';
 import { CacheModule } from './cache/cache.module';
-import { QbStoreService } from './cache/qb-store/qb-store.service';
-import { BillsController } from './bills/bills.controller';
-import { PurchasesController } from './purchases/purchases.controller';
-import { SalesRecieptsController } from './sales-receipts/sales-receipts.controller';
-import { VendorsController } from './vendors/vendors.controller';
-import { VendorCreditsController } from './vendor-credits/vendor-credits.controller';
+import { EbayStoreService } from './cache/ebay-store/ebay-store.service';
 
 @Module({
   imports: [
     CacheModule,
     ConfigModule.forRoot(),
-    NestJsQuickBooksModule.forRootAsync({
+    NestJsEbayModule.forRootAsync({
       imports: [CacheModule, ConfigModule],
-      inject: [ConfigService, QbStoreService],
+      inject: [ConfigService, EbayStoreService],
       useFactory: (
         configService: ConfigService,
-        tokenStore: QbStoreService,
-      ): NestJsQuickBooksOptions => ({
-        authRedirectUrl: 'http://localhost:3001/auth/callback',
-        clientId: configService.get<string>('QB_CLIENT_ID'),
-        clientSecret: configService.get<string>('QB_CLIENT_SECRET'),
-        mode: NestJsQuickbooksModesEnum.Sandbox,
-        serverUrl: 'http://localhost:3001',
-        scopes: [NestJsQuickBooksScopes.Accounting],
+        tokenStore: EbayStoreService,
+      ): NestJsEbayOptions => ({
+        authRedirectUrl: configService.get<string>('EBAY_RUNAME'),
+        clientId: configService.get<string>('EBAY_CLIENT_ID'),
+        clientSecret: configService.get<string>('EBAY_CLIENT_SECRET'),
+        mode: NestJsEbayModesEnum.Production,
+        scopes: [NestJsEbayScopes.Identity, NestJsEbayScopes.SellFinances],
         store: {
           getToken: () => tokenStore.getToken(),
-          setToken: (token: TokensModel) => tokenStore.setToken(token),
+          setToken: (token: EbayTokensModel) => tokenStore.setToken(token),
           unsetToken: () => tokenStore.unsetToken(),
         },
       }),
     }),
   ],
-  controllers: [
-    AppController,
-    AuthController,
-    BillsController,
-    CustomersController,
-    ItemsController,
-    PurchasesController,
-    SalesRecieptsController,
-    VendorsController,
-    VendorCreditsController,
-  ],
+  controllers: [AppController, AuthController],
   providers: [AppService],
 })
 export class AppModule {}
