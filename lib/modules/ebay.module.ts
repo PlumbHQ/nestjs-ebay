@@ -4,7 +4,8 @@ import { DynamicModule, Global, Module, Provider } from '@nestjs/common';
 import { NESTJS_EBAY_CONFIG } from '../constants';
 import { HttpModule } from '@nestjs/axios';
 import { NestJsEbayAuthModule } from './auth/auth.module';
-import { NestJsEbayCompanyInfoModule } from './identity';
+import { NestJsEbayIdentityModule } from './identity';
+import { NestJsEbayTransactionModule } from './transcation';
 
 export type NestJsEbayOptions = Partial<NestJsEbayConfigModel>;
 
@@ -58,6 +59,10 @@ export class NestJsEbayModule {
   }
 
   private static getSubModules() {
-    return [NestJsEbayAuthModule, NestJsEbayCompanyInfoModule];
+    return [
+      NestJsEbayAuthModule,
+      NestJsEbayIdentityModule,
+      NestJsEbayTransactionModule,
+    ];
   }
 }
