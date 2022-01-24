@@ -1,7 +1,9 @@
-import { EbayBookingEntryEnum } from 'lib/modules/common/models/ebay-booking-entry.enum';
-import { EbayAmountModel } from '../../common/models/ebay-amount.interface';
-import { EbayFeeTypeEnum } from '../../common/models/ebay-fee-type.enum';
-import { EbayTransactionTypeEnum } from '../../common/models/ebay-transaction-type.enum';
+import {
+  EbayBookingEntryEnum,
+  EbayAmountModel,
+  EbayFeeTypeEnum,
+  EbayTransactionTypeEnum,
+} from '../../common';
 
 export interface EbaySaleTransaction {
   transactionId: string; // '21-08157-16036';
