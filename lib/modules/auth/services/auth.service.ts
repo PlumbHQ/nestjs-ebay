@@ -4,7 +4,7 @@ import { map, mergeMap } from 'rxjs/operators';
 import { EbayTokensModel } from '..';
 import { NestJsEbayConfigService } from '../../config/services/ebay-config.service';
 import { NestJsEbayModes } from '../../config';
-import { NestJsEbayAuthorisationError } from 'lib/utils/errors/quick-books-authorisation.error';
+import { NestJsEbayAuthorisationError } from 'lib/utils/errors/ebay-authorisation.error';
 import * as EbayAuthToken from 'ebay-oauth-nodejs-client';
 
 @Injectable()

@@ -5,6 +5,7 @@ import { catchError, map, mergeMap } from 'rxjs/operators';
 import { HttpService } from '@nestjs/axios';
 import { NestJsEbayHttpError } from '../../utils';
 import { NestJsEbayModesEnum } from '../config';
+import { AxiosError } from 'axios';
 
 @Injectable()
 export abstract class NestJsEbayBaseService {
@@ -59,10 +60,7 @@ export abstract class NestJsEbayBaseService {
     console.log('handleHttpError');
 
     if (error.response) {
-      const err = new NestJsEbayHttpError(
-        error.response.data,
-        error.response.status,
-      );
+      const err = new NestJsEbayHttpError(error as AxiosError);
 
       console.error('handleHttpError.response');
       console.error('EBAY ERROR: ' + err.message);
