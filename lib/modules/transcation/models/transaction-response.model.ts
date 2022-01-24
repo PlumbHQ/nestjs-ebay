@@ -58,10 +58,14 @@ export interface EbayNonSaleChargeTransaction {
   feeType: EbayFeeTypeEnum; // 'AD_FEE';
 }
 
+export type EbayTransaction =
+  | EbaySaleTransaction
+  | EbayNonSaleChargeTransaction;
+
 export interface EbayTranscationResponseModel {
   href: string;
   limit: number;
   offset: number;
-  transactions: EbaySaleTransaction[] | EbayNonSaleChargeTransaction[];
+  transactions: EbayTransaction[];
   total: number;
 }
