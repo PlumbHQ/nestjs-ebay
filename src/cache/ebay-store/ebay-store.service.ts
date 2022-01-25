@@ -9,14 +9,16 @@ export class EbayStoreService implements NestJsEbayStore {
   constructor(@Inject(CACHE_MANAGER) private cacheManager: Cache) {}
 
   public async setToken(token: EbayTokensModel): Promise<void> {
-    this.token = token;
+    await this.cacheManager.set('ebay_token', token, {
+      ttl: token.refresh_token_expires_in,
+    });
   }
 
   public async getToken(): Promise<EbayTokensModel> {
-    return this.token;
+    return this.cacheManager.get('ebay_token');
   }
 
   public async unsetToken(): Promise<void> {
-    this.token = null;
+    await this.cacheManager.del('ebay_token');
   }
 }
